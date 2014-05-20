@@ -19,6 +19,7 @@ public class Board extends Rectangle
 	
 	private void draw()
 	{
+		//used to draw the board
 		if(this.drawBorders)
 		{
 			
