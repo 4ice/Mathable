@@ -7,6 +7,7 @@ public class Board extends Rectangle
 {
 	
 	private boolean drawBorders;
+	//The board layout
 	private int cols = 14;
 	private int rows = 14;
 
