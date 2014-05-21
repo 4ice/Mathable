@@ -1,70 +1,3 @@
-//package se.DV1456.mathable;
-//
-//import android.app.Activity;
-//import android.os.Bundle;
-//import android.view.Menu;
-//import android.view.MenuInflater;
-//import android.view.MenuItem;
-//
-//public class MainActivity extends Activity 
-//{
-//	@Override
-//	protected void onCreate(Bundle savedInstanceState) 
-//	{
-//		super.onCreate(savedInstanceState);
-//		setContentView(R.layout.activity_main);		
-//		
-//		StartFragment fragment = (StartFragment) getFragmentManager().
-//				findFragmentById(R.id.start_frag);
-//		
-//		if(fragment == null || ! fragment.isInLayout())
-//		{
-//			//start new activity
-//		}
-//		else
-//		{
-//			//Update?
-//		}
-//		
-//		if (savedInstanceState == null) 
-//		{
-//			getFragmentManager().beginTransaction()
-//					.add(R.id.container, new StartFragment()).commit();
-//		}
-//	}
-//
-//	@Override
-//	public boolean onCreateOptionsMenu(Menu menu) 
-//	{
-//		// Skapar top-meny
-//		MenuInflater inflater = getMenuInflater();
-//	    inflater.inflate(R.menu.main, menu);
-//		return super.onCreateOptionsMenu(menu);
-//	}
-//
-//	@Override
-//	public boolean onOptionsItemSelected(MenuItem item) 
-//	{
-//		// Handle action bar item clicks here. The action bar will
-//		// automatically handle clicks on the Home/Up button, so long
-//		// as you specify a parent activity in AndroidManifest.xml.
-//		
-//		//Hanterar om man klickar på något i top-meny
-//		switch (item.getItemId()) 
-//		{
-//		case R.id.action_settings:
-//			//Gå till inställningar
-//			return true;
-//		case R.id.action_newGame:
-//			//skapa ett nytt spel!
-//			return true;
-//		default:
-//			return super.onOptionsItemSelected(item);
-//		}
-//	}
-//}
-
-
 package se.DV1456.mathable;
 
 import org.andengine.engine.camera.BoundCamera;
@@ -73,16 +6,12 @@ import org.andengine.engine.handler.IUpdateHandler;
 import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.FillResolutionPolicy;
-import org.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
 import org.andengine.entity.Entity;
 import org.andengine.entity.primitive.Rectangle;
-import org.andengine.entity.scene.IOnSceneTouchListener;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.scene.background.Background;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.entity.util.FPSLogger;
-import org.andengine.entity.util.ScreenCapture;
-import org.andengine.entity.util.ScreenCapture.IScreenCaptureCallback;
 import org.andengine.extension.tmx.TMXLayer;
 import org.andengine.extension.tmx.TMXLoader;
 import org.andengine.extension.tmx.TMXProperties;
@@ -98,11 +27,8 @@ import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegion
 import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
 import org.andengine.util.Constants;
-import org.andengine.util.FileUtils;
-import org.andengine.util.color.Color;
 import org.andengine.util.debug.Debug;
 
-import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.widget.Toast;
 
@@ -119,19 +45,16 @@ public class MainActivity extends SimpleBaseGameActivity {
 	// ===========================================================
 
 	final DisplayMetrics displayMetrics = new DisplayMetrics();
-	private static int CAMERA_WIDTH;
-	private static int CAMERA_HEIGHT;
 	
 	
 	// ===========================================================
 	// Fields
 	// ===========================================================
 
-	private BoundCamera mBoundChaseCamera;
-	
+	private int CAMERA_WIDTH;
+	private int CAMERA_HEIGHT;
 	private BitmapTextureAtlas mBitmapTextureAtlas;
 	private ITextureRegion mFaceTextureRegion;
-	private Entity theTable;
 	private TMXTiledMap mTMXTiledMap;
 	protected int nrOfBlanks;
 
@@ -154,8 +77,6 @@ public class MainActivity extends SimpleBaseGameActivity {
 		this.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
 		this.CAMERA_WIDTH = displayMetrics.widthPixels;
 		this.CAMERA_HEIGHT = displayMetrics.heightPixels;
-		
-		this.mBoundChaseCamera = new BoundCamera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
 		
 		Camera camera = new Camera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
 		
