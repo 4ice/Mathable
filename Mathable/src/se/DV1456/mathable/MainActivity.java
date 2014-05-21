@@ -67,7 +67,9 @@
 
 package se.DV1456.mathable;
 
+import org.andengine.engine.camera.BoundCamera;
 import org.andengine.engine.camera.Camera;
+import org.andengine.engine.handler.IUpdateHandler;
 import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.FillResolutionPolicy;
@@ -95,10 +97,12 @@ import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas;
 import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegionFactory;
 import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
+import org.andengine.util.Constants;
 import org.andengine.util.FileUtils;
 import org.andengine.util.color.Color;
 import org.andengine.util.debug.Debug;
 
+import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.widget.Toast;
 
@@ -118,14 +122,18 @@ public class MainActivity extends SimpleBaseGameActivity {
 	private static int CAMERA_WIDTH;
 	private static int CAMERA_HEIGHT;
 	
+	
 	// ===========================================================
 	// Fields
 	// ===========================================================
 
+	private BoundCamera mBoundChaseCamera;
+	
 	private BitmapTextureAtlas mBitmapTextureAtlas;
 	private ITextureRegion mFaceTextureRegion;
 	private Entity theTable;
 	private TMXTiledMap mTMXTiledMap;
+	protected int nrOfBlanks;
 
 	// ===========================================================
 	// Constructors
@@ -147,6 +155,8 @@ public class MainActivity extends SimpleBaseGameActivity {
 		this.CAMERA_WIDTH = displayMetrics.widthPixels;
 		this.CAMERA_HEIGHT = displayMetrics.heightPixels;
 		
+		this.mBoundChaseCamera = new BoundCamera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
+		
 		Camera camera = new Camera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
 		
 		return new EngineOptions(true, ScreenOrientation.PORTRAIT_FIXED, new FillResolutionPolicy(), camera);
@@ -162,36 +172,16 @@ public class MainActivity extends SimpleBaseGameActivity {
 		this.mBitmapTextureAtlas.load();		
 	}
 
+	
+	
+	
 	@Override
 	public Scene onCreateScene() {
 		this.mEngine.registerUpdateHandler(new FPSLogger());
 		
 		final Scene scene = new Scene();
 		
-		//1. Create a rectangle with the grid that has the gameboard
-		try {
-			final TMXLoader tmxLoader = new TMXLoader(this.getAssets(), this.mEngine.getTextureManager(), TextureOptions.BILINEAR_PREMULTIPLYALPHA, this.getVertexBufferObjectManager(), new ITMXTilePropertiesListener() {
-				@Override
-				public void onTMXTileWithPropertiesCreated(final TMXTiledMap pTMXTiledMap, final TMXLayer pTMXLayer, final TMXTile pTMXTile, final TMXProperties<TMXTileProperty> pTMXTileProperties) {
-					/* We are going to count the tiles that have the property "cactus=true" set. */
-					if(pTMXTileProperties.containsTMXProperty("cactus", "true")) {
-						//Cactus found!!
-					}
-				}
-			});
-			this.mTMXTiledMap = tmxLoader.loadFromAsset("tmx/desert.tmx");
-
-			this.runOnUiThread(new Runnable() {
-				@Override
-				public void run() {
-					//Cactus found!!
-				}
-			});
-		} catch (final TMXLoadException e) {
-			Debug.e(e);
-		}
 		
-		//2. create a row of 7 tiles that the user can put down on the table.
 		
 		final float centerX = (this.CAMERA_WIDTH - this.mFaceTextureRegion.getWidth()) / 2;
 		final float centerY = (this.CAMERA_HEIGHT - this.mFaceTextureRegion.getHeight()) / 2;
@@ -207,17 +197,63 @@ public class MainActivity extends SimpleBaseGameActivity {
 			}
 		};
 		
-		// Create the rectangles
-		//final Rectangle rect1 = this.makeColoredRectangle(-180, -180, 1, 0, 0);
-		final Rectangle rect1 = new Rectangle(0,0, 100, 100, this.getVertexBufferObjectManager());
-		final Rectangle rect2 = new Rectangle(100,0, 100, 100, this.getVertexBufferObjectManager());
+		//1. Create a rectangle with the grid that has the gameboard
+		try {
+			final TMXLoader tmxLoader = new TMXLoader(this.getAssets(), this.mEngine.getTextureManager(), TextureOptions.BILINEAR_PREMULTIPLYALPHA, this.getVertexBufferObjectManager(), new ITMXTilePropertiesListener() {
+				@Override
+				public void onTMXTileWithPropertiesCreated(final TMXTiledMap pTMXTiledMap, final TMXLayer pTMXLayer, final TMXTile pTMXTile, final TMXProperties<TMXTileProperty> pTMXTileProperties) {
+					/* We are going to count the tiles that have the property "cactus=true" set. */
+					if(pTMXTileProperties.containsTMXProperty("property", "0")) {
+						MainActivity.this.nrOfBlanks++;
+					}
+				}
+			});
+			this.mTMXTiledMap = tmxLoader.loadFromAsset("tmx/gameBoard.tmx");
+
+			this.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					Toast.makeText(MainActivity.this, "There are: " + MainActivity.this.nrOfBlanks + " Blank tiles left...", Toast.LENGTH_LONG).show();
+				}
+			});
+		} catch (final TMXLoadException e) {
+			Debug.e(e);
+		}
 		
-		final Entity rectangleGroup = new Entity(0,0);
+		final TMXLayer tmxLayer = this.mTMXTiledMap.getTMXLayers().get(0);
+		scene.attachChild(tmxLayer);
 		
-		rectangleGroup.attachChild(rect1);
-		rectangleGroup.attachChild(rect2);
+		/* Now we are going to create a rectangle that will  always highlight the tile below the feet of the pEntity. */
+		final Rectangle currentTileRectangle = new Rectangle(0, 0, this.mTMXTiledMap.getTileWidth(), this.mTMXTiledMap.getTileHeight(), this.getVertexBufferObjectManager());
+		currentTileRectangle.setColor(1, 0, 0, 0.25f);
+		scene.attachChild(currentTileRectangle);
+
+		scene.registerUpdateHandler(new IUpdateHandler() {
+			@Override
+			public void reset() { }
+
+			@Override
+			public void onUpdate(final float pSecondsElapsed) {
+				/* Get the scene-coordinates of the players feet. */
+				final float[] playerFootCordinates = face.convertLocalToSceneCoordinates(12, 31);
+
+				/* Get the tile the feet of the player are currently waking on. */
+				final TMXTile tmxTile = tmxLayer.getTMXTileAt(playerFootCordinates[Constants.VERTEX_INDEX_X], playerFootCordinates[Constants.VERTEX_INDEX_Y]);
+				if(tmxTile != null) {
+					// tmxTile.setTextureRegion(null); <-- Rubber-style removing of tiles =D
+					currentTileRectangle.setPosition(tmxTile.getTileX(), tmxTile.getTileY());
+				}
+			}
+		});
 		
-		scene.attachChild(rectangleGroup);
+		
+		
+		
+		
+		
+		
+		
+		//2. create a row of 7 tiles that the user can put down on the table.
 		
 		scene.setBackground(new Background(0, 0, 0));
 		scene.attachChild(face);
@@ -230,16 +266,6 @@ public class MainActivity extends SimpleBaseGameActivity {
 	// ===========================================================
 	// Methods
 	// ===========================================================
-	
-	private Rectangle makeRectangleFromFile(final float pX, final float pY, String fileName) {
-		final Rectangle tile = new Rectangle(pX, pY, 100, 100, this.getVertexBufferObjectManager());
-		tile.setColor(Color.RED);
-		return tile;
-	}
-	private void createTable()
-	{
-		
-	}
 
 	// ===========================================================
 	// Inner and Anonymous Classes

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="14" height="14" tilewidth="100" tileheight="100">
+ <tileset firstgid="1" name="allBoxes" tilewidth="100" tileheight="100">
+  <image source="gfx/allBoxes.png" width="700" height="300"/>
+  <tile id="0">
+   <properties>
+    <property name="property" value="0"/>
+   </properties>
+  </tile>
+  <tile id="1">
+   <properties>
+    <property name="property" value="1"/>
+   </properties>
+  </tile>
+  <tile id="2">
+   <properties>
+    <property name="property" value="2"/>
+   </properties>
+  </tile>
+  <tile id="3">
+   <properties>
+    <property name="property" value="3"/>
+   </properties>
+  </tile>
+  <tile id="4">
+   <properties>
+    <property name="property" value="4"/>
+   </properties>
+  </tile>
+  <tile id="5">
+   <properties>
+    <property name="property" value="5"/>
+   </properties>
+  </tile>
+  <tile id="7">
+   <properties>
+    <property name="property" value="6"/>
+   </properties>
+  </tile>
+  <tile id="8">
+   <properties>
+    <property name="property" value="7"/>
+   </properties>
+  </tile>
+  <tile id="9">
+   <properties>
+    <property name="property" value="8"/>
+   </properties>
+  </tile>
+  <tile id="10">
+   <properties>
+    <property name="property" value="9"/>
+   </properties>
+  </tile>
+  <tile id="11">
+   <properties>
+    <property name="property" value="10"/>
+   </properties>
+  </tile>
+ </tileset>
+ <layer name="gameLayer" width="14" height="14">
+  <data encoding="base64" compression="zlib">
+   eJydUlsOwCAIY9Mtvu5/3rHEj4YUcftoVKBCgSEiB8GY8Hzv2cHWSBzauvHhuzh3y2H2W1EDDqujTm6ko5D/LDAGe4Y5TkUidtZr1JQVl6MVOV/r9PqCOaL5ot9q2pnd7tz/7Nlqd1e+B2ZcAts=
+  </data>
+ </layer>
+</map>
