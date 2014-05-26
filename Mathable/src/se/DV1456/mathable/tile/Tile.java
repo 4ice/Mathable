@@ -1,10 +1,12 @@
+//Fully functional!
+
+
 package se.DV1456.mathable.tile;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
 public enum Tile {
 	//Elements
@@ -149,7 +151,7 @@ public enum Tile {
 	}
 
 	//Functions
-	public int getmValue() 
+	public int getValue() 
 	{
 		return this.value.ordinal();
 	}
@@ -175,7 +177,7 @@ public enum Tile {
 
 	public int getTexturePositionX() 
 	{
-		return this.value.ordinal() * this.TILE_SIZE;
+		return this.value.ordinal()%15 * this.TILE_SIZE;
 	}
 	
 	public int getTexturePositionY() 
@@ -184,7 +186,7 @@ public enum Tile {
 	}
 
 	private static void createList() {
-		//Initiallize the list
+		//Initialize the list
 		tList = new ArrayList<Tile>(Arrays.asList(Tile.values()));
 		//shuffle around the elements
 		Collections.shuffle(tList);

@@ -45,6 +45,8 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 	// Fields
 	// ===========================================================
 
+	
+	/*** VARIABLES FOR CREATING THE LOOKS AND SUCH! ***/
 	//Screen resolution
 	private int CAMERA_WIDTH;
 	private int CAMERA_HEIGHT;
@@ -68,7 +70,8 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 	private TMXTiledMap mTMXTiledMap;
 	
 	private HashMap<Tile, ITextureRegion> mTileTotextureRegionMap;
-
+	
+	/*** VARIABLES FOR THE GAME ITSELF! ***/
 
 	// ===========================================================
 	// Constructors
@@ -119,6 +122,7 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 		
 		for(final Tile tile : Tile.values())
 		{
+			//tileTextureRegion stores the image for each tile
 			final ITextureRegion tileTextureRegion = TextureRegionFactory.extractFromTexture(this.mBitmapTextureAtlas, tile.getTexturePositionX(), tile.getTexturePositionY(), tile.getTILE_SIZE(), tile.getTILE_SIZE());
 			this.mTileTotextureRegionMap.put(tile, tileTextureRegion);
 		}
@@ -127,6 +131,9 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 	@Override
 	public Scene onCreateScene() {
 		this.mEngine.registerUpdateHandler(new FPSLogger());
+		
+		Player p1 = new Player("Kalle");
+		Player p2 = new Player("Nisse");
 
 		//Initialize the Scene (Equal to jFrame)
 		this.mScene = new Scene();
@@ -158,36 +165,27 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 		this.mZoomCamera.setBounds(0f, 0f, tmxLayer.getWidth(), tmxLayer.getHeight());
 		this.mZoomCamera.setBoundsEnabled(true);
 		
-//		//Creates a button
-//		ButtonSprite bn = new ButtonSprite(250, 250, this.mTileTextureRegion, this.getVertexBufferObjectManager()) {
-//			@Override
-//			public boolean onAreaTouched(TouchEvent pTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) {
-//				if(pTouchEvent.isActionDown()) {
-//					mScene.detachChild(this);
-//					mScene.attachChild(tmxLayer);
-//					try {
-//						for(int i = 0; i < 7; i++)
-//						{
-//							addTile(Tile.getRandomTile(), 0, 0);
-//						}
-//					} catch (Exception e) {
-//						e.printStackTrace();
-//					}
-//				}
-//				return super.onAreaTouched(pTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
-//			}
-//		};
-//		mScene.attachChild(bn);
-//		this.mScene.registerTouchArea(bn);
-		
 		this.mScene.setBackground(new Background(0, 0, 0));
 		
 		
 		mScene.attachChild(tmxLayer);
 		try {
+			Tile toAddTile;
 			for(int i = 0; i < 7; i++)
 			{
-				addTile(Tile.getRandomTile(), 0, 0);
+				for(int j = 0; j < 2; j++)
+				{
+					toAddTile = Tile.getRandomTile();
+					if(j == 0)
+					{
+						this.givePlayerTile(p1, toAddTile);
+					}
+					else
+					{
+						this.givePlayerTile(p2, toAddTile);
+					}
+					this.addTile(toAddTile, i*100, j);
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -258,6 +256,20 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 	{
 		final float zoomFactor = this.mZoomCamera.getZoomFactor();
 		this.mZoomCamera.offsetCenter(-pDistanceX / zoomFactor, -pDistanceY / zoomFactor);
+	}
+	
+	
+	
+	private void givePlayerTile(Player player, final Tile pTile)
+	{
+		try
+		{
+			player.addTile(pTile);
+		}
+		catch(Exception e)
+		{
+			System.out.println(e.getMessage());
+		}
 	}
 	
 	private void addTile(final Tile pTile, final int pX, final int pY)
