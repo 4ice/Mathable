@@ -23,4 +23,8 @@ public class StartFragment extends Fragment
 	{
 		
 	}
+	public void setText(int newGame) {
+		// TODO Auto-generated method stub
+		
+	}
 }

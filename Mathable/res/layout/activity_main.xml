@@ -6,4 +6,11 @@
     tools:context="se.DV1456.mathable.MainActivity"
     tools:ignore="MergeRootFrame" >
 
+    <Button
+        android:id="@+id/button1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="onClicked"
+        android:text="Button" />
+
 </FrameLayout>
