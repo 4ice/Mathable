@@ -1,6 +1,5 @@
 package se.DV1456.mathable;
 
-import java.util.Arrays;
 import java.util.HashMap;
 
 import org.andengine.engine.camera.ZoomCamera;
@@ -23,13 +22,14 @@ import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.texture.region.TextureRegionFactory;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
 import org.andengine.util.Constants;
-import org.andengine.util.algorithm.Spiral;
 import org.andengine.util.debug.Debug;
 
 import se.DV1456.mathable.tile.Tile;
 import android.content.res.Resources.Theme;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.view.MotionEvent;
+import android.widget.Toast;
 
 
 
@@ -117,7 +117,7 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 		this.mBitmapTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(), 1600, 500, TextureOptions.BILINEAR);
 		this.mTileTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(this.mBitmapTextureAtlas, this, "rowTemplateFixed.png", 0, 0);
 		this.mBitmapTextureAtlas.load();
-		
+
 		//sets all boxes to available...
 		this.usedTiles = new boolean[14][14];
 		//...Except the four in the middle.
@@ -125,7 +125,7 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 		this.usedTiles[8][7] = true;
 		this.usedTiles[7][8] = true;
 		this.usedTiles[8][8] = true;
-		
+
 
 
 		//Saves the png-pos for each tile in mTileTotextureRegionMap
@@ -202,6 +202,9 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 		this.addTile(p1.getTheTiles(), 0, 0);
 		this.addTile(p2.getTheTiles(), 0, 100);
 		return this.mScene;
+
+
+
 	}
 
 	/*** 3 Functions for handling scroll (Move camera) ***/
@@ -284,23 +287,21 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 
 	private void addTile(final Tile[] tile, final int pX, final int pY)
 	{
-		for(Tile pTile : tile)
+		for(final Tile pTile : tile)
 		{
 			if(pTile != null)
 			{
 				final Sprite spriteTile = new Sprite(pX, pY, this.mTileTotextureRegionMap.get(pTile), this.getVertexBufferObjectManager()) {
 					//moves the sprite
-					float[] tilePreCordinates = {0f,0f};
 					@Override
 					public boolean onAreaTouched(final TouchEvent pSceneTouchEvent, final float pTouchAreaLocalX, final float pTouchAreaLocalY) {
 						this.setPosition(pSceneTouchEvent.getX() - this.getWidth() / 2, pSceneTouchEvent.getY() - this.getHeight() / 2);
 
-						
 						if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_DOWN)
 						{
-							tilePreCordinates[0] = this.getX();
-							tilePreCordinates[1] =  this.getY();
-							usedTiles[(int) (tilePreCordinates[0]/100)][(int) (tilePreCordinates[1]/100)] = false;
+							final float[] tilePreCordinates = this.convertLocalToSceneCoordinates(50, 50);
+							usedTiles[(int)tilePreCordinates[0]/100][(int)tilePreCordinates [1]/100] = false;
+							
 							this.setZIndex(1);
 							getParent().sortChildren();
 						}
@@ -309,80 +310,26 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 						{
 							//Gets the coordinates for the box below the center of the tile
 							final float[] tileReleaseCordinates = this.convertLocalToSceneCoordinates(50, 50);
-							
+
 							// Get the box that the player tries to put a tile on and save it in tmxTile.
 							final TMXTile tmxTile = tmxLayer.getTMXTileAt(tileReleaseCordinates[Constants.VERTEX_INDEX_X], tileReleaseCordinates[Constants.VERTEX_INDEX_Y]);
 							if(tmxTile != null) {
 								TMXProperties<TMXTileProperty> pTMXTileProperties = mTMXTiledMap.getTMXTileProperties(tmxTile.getGlobalTileID());
 
 								//1. Check if it's possible to put a tile on selected box.
-								if(!usedTiles[(int) (tileReleaseCordinates[0]/100)][(int) (tileReleaseCordinates[1]/100)])
+								if(!usedTiles[tmxTile.getTileX()/100][tmxTile.getTileY()/100])
 								{
-									/*NOTE: This check could be done when the user tries 
-											to play the tile that was put there if we 
-											want a play button instead of playing instantly. */
+									playTile(pTile, this, tmxTile, pTMXTileProperties);
 
-
-									//2. check what kind of box, and then check if valid or not.
-
-									//If the box is normal
-									if(pTMXTileProperties.containsTMXProperty("property", "0"))
-									{
-										//try all math-operations for the tile
-										this.setPosition(tmxTile.getTileX(), tmxTile.getTileY());
-										usedTiles[(int) (tileReleaseCordinates[0]/100)][(int) (tileReleaseCordinates[1]/100)] = true;
-										
-									}
-									//If the box is a plus-sign
-									else if(pTMXTileProperties.containsTMXProperty("property", "5"))
-									{
-										//try +
-										this.setPosition(tmxTile.getTileX(), tmxTile.getTileY());
-										usedTiles[(int) (tileReleaseCordinates[0]/100)][(int) (tileReleaseCordinates[1]/100)] = true;
-									}
-									//if the box is a minus-sign
-									else if(pTMXTileProperties.containsTMXProperty("property", "6"))
-									{
-										//try -
-										this.setPosition(tmxTile.getTileX(), tmxTile.getTileY());
-										usedTiles[(int) (tileReleaseCordinates[0]/100)][(int) (tileReleaseCordinates[1]/100)] = true;
-									}
-									//if the box is a multiplication-sign
-									else if(pTMXTileProperties.containsTMXProperty("property", "7"))
-									{
-										//try *
-										this.setPosition(tmxTile.getTileX(), tmxTile.getTileY());
-										usedTiles[(int) (tileReleaseCordinates[0]/100)][(int) (tileReleaseCordinates[1]/100)] = true;
-									}
-									//if the box is a division sign
-									else if(pTMXTileProperties.containsTMXProperty("property", "8"))
-									{
-										//try /
-										this.setPosition(tmxTile.getTileX(), tmxTile.getTileY());
-										usedTiles[(int) (tileReleaseCordinates[0]/100)][(int) (tileReleaseCordinates[1]/100)] = true;
-									}
-									//If the tile is a doublet
-									else if(pTMXTileProperties.containsTMXProperty("property", "9"))
-									{
-										//try all math-operations for the tile
-										this.setPosition(tmxTile.getTileX(), tmxTile.getTileY());
-										usedTiles[(int) (tileReleaseCordinates[0]/100)][(int) (tileReleaseCordinates[1]/100)] = true;
-									}
-									//If the tile is a triplett
-									else if(pTMXTileProperties.containsTMXProperty("property", "10"))
-									{
-										//try all math-operations for the tile
-										this.setPosition(tmxTile.getTileX(), tmxTile.getTileY());
-										usedTiles[(int) (tileReleaseCordinates[0]/100)][(int) (tileReleaseCordinates[1]/100)] = true;
-									}
 									this.setZIndex(0);
 									getParent().sortChildren();
 								}
-								//If box is already used, put the tile back in the row of available tiles
+								//If box is already used, put the tile at the closest position.
 								else
 								{
-									this.setPosition(tilePreCordinates[0], tilePreCordinates[1]);
-									usedTiles[(int) (tilePreCordinates[0]/100)][(int) (tilePreCordinates[1]/100)] = true;									
+
+									this.setPosition(0,0);
+									//usedTiles[(int)tilePreCordinates[0]][(int)tilePreCordinates[1]] = false;							
 								}
 							}
 						}
@@ -401,6 +348,117 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 	// ===========================================================
 	// Inner and Anonymous Classes
 	// ===========================================================
+
+	private void playTile(Tile pTile, Sprite spriteTile, final TMXTile tmxTile, TMXProperties<TMXTileProperty> pTMXTileProperties)
+	{
+		/*NOTE: This check could be done when the user tries 
+		to play the tile that was put there if we 
+		want a play button instead of playing instantly. */
+
+
+		//2. check what kind of box, and then check if valid or not.
+
+		//If the box is normal
+		if(pTMXTileProperties.containsTMXProperty("property", "0"))
+		{
+			//try all math-operations for the tile
+			if(allArithmetics(1, 2, pTile.getValue()))
+			{
+				spriteTile.setPosition(tmxTile.getTileX(), tmxTile.getTileY());
+				usedTiles[tmxTile.getTileX()/100][tmxTile.getTileY()/100] = true;
+			}										
+		}
+		//If the box is a plus-sign
+		else if(pTMXTileProperties.containsTMXProperty("property", "5"))
+		{
+			//try + in all four directions
+			spriteTile.setPosition(tmxTile.getTileX(), tmxTile.getTileY());
+			usedTiles[tmxTile.getTileX()/100][tmxTile.getTileY()/100] = true;
+		}
+		//if the box is a minus-sign + in all four directions
+		else if(pTMXTileProperties.containsTMXProperty("property", "6"))
+		{
+			//try - in all four directions
+			spriteTile.setPosition(tmxTile.getTileX(), tmxTile.getTileY());
+			usedTiles[tmxTile.getTileX()/100][tmxTile.getTileY()/100] = true;
+		}
+		//if the box is a multiplication-sign
+		else if(pTMXTileProperties.containsTMXProperty("property", "7"))
+		{
+			//try * in all four directions
+			spriteTile.setPosition(tmxTile.getTileX(), tmxTile.getTileY());
+			usedTiles[tmxTile.getTileX()/100][tmxTile.getTileY()/100] = true;
+		}
+		//if the box is a division sign
+		else if(pTMXTileProperties.containsTMXProperty("property", "8"))
+		{
+			//try / in all four directions
+			spriteTile.setPosition(tmxTile.getTileX(), tmxTile.getTileY());
+			usedTiles[tmxTile.getTileX()/100][tmxTile.getTileY()/100] = true;
+		}
+		//If the tile is a doublet
+		else if(pTMXTileProperties.containsTMXProperty("property", "9"))
+		{
+			//try all math-operations for the tile, in all four directions
+			spriteTile.setPosition(tmxTile.getTileX(), tmxTile.getTileY());
+			usedTiles[tmxTile.getTileX()/100][tmxTile.getTileY()/100] = true;
+		}
+		//If the tile is a triplett
+		else if(pTMXTileProperties.containsTMXProperty("property", "10"))
+		{
+			//try all math-operations for the tile, in all four directions
+			spriteTile.setPosition(tmxTile.getTileX(), tmxTile.getTileY());
+			usedTiles[tmxTile.getTileX()/100][tmxTile.getTileY()/100] = true;
+		}
+	}
+
+	private boolean addition(int term1, int term2, int result)
+	{
+		boolean correct = false;
+		if((term1+term2) == result)
+		{
+			correct = true;
+		}
+		return (term1+term2) == result;
+	}
+	private boolean subtraction(int term1, int term2, int result)
+	{
+		boolean correct = false;
+		if((term1-term2) == result || (term2-term1) == result)
+		{
+			correct = true;
+		}
+		return (term1-term2) == result;
+	}
+	private boolean multiplication(int term1, int term2, int result)
+	{
+		boolean correct = false;
+		if((term1*term2) == result)
+		{
+			correct = true;
+		}
+		return correct;
+	}
+	private boolean division(int term1, int term2, int result)
+	{
+		boolean correct = false;
+		if((term1/term2) == result || (term2/term1) == result)
+		{
+			correct = true;
+		}
+		return (term1/term2) == result;
+	}
+
+	private boolean allArithmetics(int term1, int term2, int result)
+	{
+		boolean correct = false;
+		if((term1+term2) == result || (term1-term2) == result || (term2-term1) == result || 
+				(term1*term2) == result || (term1/term2) == result || (term2/term1) == result)
+		{
+			correct = true;
+		}
+		return correct;
+	}
 }
 
 
