@@ -31,6 +31,10 @@ public class Player {
 	{
 		return points;
 	}
+	public int getNrOfTiles()
+	{
+		return this.nrOfTiles;
+	}
 	
 	public void addTile(Tile tile) throws Exception
 	{
@@ -38,10 +42,17 @@ public class Player {
 		{
 			throw new Exception("The user already has seven tiles.");
 		}
-		this.theTiles[this.nrOfTiles++] = tile;
+		else if(tile != null)
+		{
+			this.theTiles[this.nrOfTiles++] = tile;
+		}
 	}
-	public void playTile()
+	public void playTile(Tile tile)
 	{
+		if(tile != null)
+		{
+			
+		}
 		this.nrOfTiles--;
 	}
 	

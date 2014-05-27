@@ -198,12 +198,7 @@ public enum Tile {
 		{
 			createList();
 		}
-		//If all tiles are already picked
-		if(tList.size() == 0)
-		{
-			throw new Exception("No tiles left!");
-		}
-		//returns the first tile in the shuffled ordered list.
+		//returns the first tile in the shuffled ordered list. Returns null if there is nothing left in the array
 		return tList.remove(0);
 	}
 }
